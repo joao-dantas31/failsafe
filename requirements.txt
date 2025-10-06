@@ -10,3 +10,4 @@ google-auth-oauthlib==0.4.6
 googleapis-common-protos==1.54.0
 discord==1.7.3
 discord.py==1.7.3
+python-dotenv~=1.0.1

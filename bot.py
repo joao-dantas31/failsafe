@@ -1,3 +1,5 @@
+import os
+
 import discord
 import requests
 import pandas as pd
@@ -7,13 +9,16 @@ from google_auth_oauthlib.flow import InstalledAppFlow,Flow
 from google.oauth2 import service_account
 from google.auth.transport.requests import Request
 
+load_dotenv()
+
 client = discord.Client()
 url = "https://stats.bungie.net/Platform/Destiny2/Stats/PostGameCarnageReport/{idRaid}/"
 
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
-SAMPLE_SPREADSHEET_ID_input = '1feYTKrvdT-PmbkdF-Asj8Cutq8DD4oxxexrRR7IHfP0'
+SAMPLE_SPREADSHEET_ID_INPUT = os.getenv('SAMPLE_SPREADSHEET_ID_INPUT')
 SAMPLE_RANGE_NAME = 'A1:AA1000'
+BUNGIE_API_KEY = os.getenv('BUNGIE_API_KEY')
 
 emoji = '\N{SQUARED OK}'
 
@@ -25,7 +30,7 @@ def write(columnsList):
 
     # Call the Sheets API
     sheet = service.spreadsheets()
-    result_input = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID_input,
+    result_input = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID_INPUT,
                                       range=SAMPLE_RANGE_NAME).execute()
     values_input = result_input.get('values', [])
 
@@ -46,7 +51,7 @@ def write(columnsList):
         df.loc[df.shape[0]] = columnsList
 
         service.spreadsheets().values().update(
-        spreadsheetId=SAMPLE_SPREADSHEET_ID_input,
+        spreadsheetId=SAMPLE_SPREADSHEET_ID_INPUT,
         valueInputOption='RAW',
         range=SAMPLE_RANGE_NAME,
         body=dict(
@@ -64,7 +69,7 @@ async def on_message(message):
         return
 
     if message.content.startswith('$r'):
-        request = requests.get(url.format(idRaid = message.content[3:]), headers={"x-api-key": "99b51483606642a095f0e76b92653ad8"})
+        request = requests.get(url.format(idRaid = message.content[3:]), headers={"x-api-key": BUNGIE_API_KEY})
         data = request.json().get('Response')
         participantes = data.get('entries')
         columnsList = {'raidId': message.content[3:]}
@@ -74,4 +79,4 @@ async def on_message(message):
         write(columnsList)
         await message.add_reaction(emoji)
 
-client.run('OTQxNzc2ODA3MzE1NzcxNDUy.Yga4AA.DRoMbZ6ZMm4vyaKQvzSZfDZJn5M')
+client.run(os.getenv('BOT_SECRET'))
